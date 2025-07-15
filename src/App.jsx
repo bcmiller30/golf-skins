@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useSwipeable } from "react-swipeable";
+import SkinsCard from "./components/SkinsCard";
+
 
 const NUM_HOLES = 18;
 const DEFAULT_PAYOUT = 20;
@@ -140,14 +142,12 @@ export default function SkinsApp() {
             </tbody>
           </table>
 
-          <h2 className="text-lg font-semibold mb-2">💰 Results</h2>
-          <ul className="mb-4">
-            {golfers.map((g) => (
-              <li key={g} className="mb-1">
-                <strong>{g}:</strong> Won ${winnings[g]} — Net ${winnings[g] - buyIn}
-              </li>
-            ))}
-          </ul>
+          <SkinsCard 
+            golfers={golfers} 
+            winnings={winnings} 
+            buyIn={buyIn} 
+            purse={purse} 
+          />
 
           <button
             className="bg-red-500 text-white px-4 py-2 text-sm md:text-base rounded"
