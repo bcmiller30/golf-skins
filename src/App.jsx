@@ -95,9 +95,11 @@ export default function SkinsApp() {
       </div>
 
       <div className="mb-4">
-        <label className="block mb-1">Add Golfer</label>
+        <label htmlFor="golfer-name" className="block mb-1">Add Golfer</label>
         <input
+          id="golfer-name"
           type="text"
+          name="golfer"
           className="border p-2 mr-2"
           value={golferInput}
           onChange={(e) => setGolferInput(e.target.value)}
