@@ -51,16 +51,15 @@ export default function App() {
   };
 
   const addGolfer = () => {
-    if (golferInput.trim() && !golfers.includes(golferInput.trim())) {
-      setGolfers([...golfers, golferInput.trim()]);
-      setGolferInput("");
-    }
+    const name = golferInput.trim();
+
+    if (!name) return alert("Please enter a valid name.");
+    if (golfers.includes(name)) return alert("That golfer is already added.");
+
+    setGolfers([...golfers, name]);
+    setGolferInput("");
   };
 
-  const handleEditStart = (name) => {
-    setEditingGolfer(name);
-    setEditedName(name);
-  };
 
   const handleEditSave = () => {
     if (!editedName.trim() || golfers.includes(editedName)) return;
