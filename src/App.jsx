@@ -4,7 +4,7 @@ import { useSwipeable } from "react-swipeable";
 const NUM_HOLES = 18;
 const DEFAULT_PAYOUT = 20;
 
-export default function App() {
+export default function SkinsApp() {
   const [golferInput, setGolferInput] = useState("");
   const [golfers, setGolfers] = useState(() => {
     const saved = localStorage.getItem("golfers");
@@ -18,9 +18,6 @@ export default function App() {
     const saved = localStorage.getItem("payout");
     return saved ? parseInt(saved) : DEFAULT_PAYOUT;
   });
-
-  const [editingGolfer, setEditingGolfer] = useState(null);
-  const [editedName, setEditedName] = useState("");
 
   useEffect(() => {
     localStorage.setItem("golfers", JSON.stringify(golfers));
@@ -52,27 +49,11 @@ export default function App() {
 
   const addGolfer = () => {
     const name = golferInput.trim();
-
-    if (!name) return alert("Please enter a valid name.");
-    if (golfers.includes(name)) return alert("That golfer is already added.");
-
+    if (!name) return alert("Enter a valid name.");
+    if (golfers.includes(name)) return alert("Golfer already added.");
     setGolfers([...golfers, name]);
     setGolferInput("");
   };
-
-
-  const handleEditSave = () => {
-    if (!editedName.trim() || golfers.includes(editedName)) return;
-    const updated = golfers.map((g) => (g === editingGolfer ? editedName : g));
-    const updatedWinners = holeWinners.map((w) =>
-      w === editingGolfer ? editedName : w
-    );
-    setGolfers(updated);
-    setHoleWinners(updatedWinners);
-    setEditingGolfer(null);
-  };
-
-  const handleEditCancel = () => setEditingGolfer(null);
 
   const getSkinValues = () => {
     const skinValues = Array(NUM_HOLES).fill(payout);
@@ -97,11 +78,11 @@ export default function App() {
 
   return (
     <div className="max-w-2xl mx-auto p-2 md:p-4 text-center">
-      <h1 className="text-xl font-bold mb-4">🏌️ Golf Skins Scorecard</h1>
+      <h1 className="text-xl font-bold mb-2">🏌️ Golf Skins Tracker</h1>
 
-      <div className="mb-2 text-sm">
-        Total Purse: <strong>${purse}</strong> | Buy-in per golfer: <strong>${buyIn}</strong>
-      </div>
+      <p className="text-sm mb-2">
+        Total Purse: ${purse} | Buy-in per golfer: ${buyIn}
+      </p>
 
       <div className="mb-4">
         <label className="block mb-1">Per-Hole Payout ($)</label>
@@ -114,7 +95,7 @@ export default function App() {
       </div>
 
       <div className="mb-4">
-        <label className="block mb-1">Add Golfer (Initials or Nickname)</label>
+        <label className="block mb-1">Add Golfer</label>
         <input
           type="text"
           className="border p-2 mr-2"
@@ -136,79 +117,24 @@ export default function App() {
               <tr>
                 <th className="border p-2">Hole</th>
                 {golfers.map((g) => (
-                  <th key={g} className="border p-2">
-                    {editingGolfer === g ? (
-                      <div className="flex items-center">
-                        <input
-                          className="border p-1 w-20 text-xs"
-                          value={editedName}
-                          onChange={(e) => setEditedName(e.target.value)}
-                        />
-                        <button onClick={handleEditSave} className="ml-1 text-green-600">✔</button>
-                        <button onClick={handleEditCancel} className="ml-1 text-red-600">✖</button>
-                      </div>
-                    ) : (
-                      <div className="flex justify-between items-center">
-                        <span>{g}</span>
-                        <button
-                          className="ml-1 text-blue-600 text-xs"
-                          onClick={() => handleEditStart(g)}
-                        >
-                          ✏️
-                        </button>
-                      </div>
-                    )}
-                  </th>
+                  <th key={g} className="border p-2">{g}</th>
                 ))}
                 <th className="border p-2">T</th>
                 <th className="border p-2">Skins $</th>
               </tr>
             </thead>
             <tbody>
-              {holeWinners.map((winner, idx) => {
-                const swipeHandlers = useSwipeable({
-                  onSwipedLeft: () => handleSwipeTie(idx),
-                  preventDefaultTouchmoveEvent: true,
-                  trackMouse: true,
-                });
-
-                return (
-                  <tr
-                    key={idx}
-                    {...swipeHandlers}
-                    className={winner === "T" ? "bg-yellow-100" : ""}
-                  >
-                    <td className="border p-2 font-semibold relative">
-                      {idx + 1}
-                      {winner === "T" && (
-                        <span className="absolute inset-0 flex items-center justify-center text-yellow-600 font-bold text-xs md:text-sm">
-                          TIE
-                        </span>
-                      )}
-                    </td>
-                    {golfers.map((g) => (
-                      <td
-                        key={g}
-                        className={`border p-2 cursor-pointer ${
-                          winner === g ? "bg-green-200" : ""
-                        }`}
-                        onClick={() => handleWinnerSelect(idx, g)}
-                      >
-                        {winner === g ? "✔" : ""}
-                      </td>
-                    ))}
-                    <td
-                      className={`border p-2 cursor-pointer ${
-                        winner === "T" ? "bg-yellow-200" : ""
-                      }`}
-                      onClick={() => handleWinnerSelect(idx, "T")}
-                    >
-                      {winner === "T" ? "✔" : ""}
-                    </td>
-                    <td className="border p-2">${skinValues[idx]}</td>
-                  </tr>
-                );
-              })}
+              {holeWinners.map((winner, idx) => (
+                <HoleRow
+                  key={idx}
+                  idx={idx}
+                  winner={winner}
+                  golfers={golfers}
+                  skinValue={skinValues[idx]}
+                  onWinnerSelect={handleWinnerSelect}
+                  onSwipeTie={handleSwipeTie}
+                />
+              ))}
             </tbody>
           </table>
 
@@ -230,5 +156,46 @@ export default function App() {
         </div>
       )}
     </div>
+  );
+}
+
+function HoleRow({ idx, winner, golfers, skinValue, onWinnerSelect, onSwipeTie }) {
+  const swipeHandlers = useSwipeable({
+    onSwipedLeft: () => onSwipeTie(idx),
+    preventDefaultTouchmoveEvent: true,
+    trackMouse: true,
+  });
+
+  return (
+    <tr {...swipeHandlers} className={winner === "T" ? "bg-yellow-100" : ""}>
+      <td className="border p-2 font-semibold relative">
+        {idx + 1}
+        {winner === "T" && (
+          <span className="absolute inset-0 flex items-center justify-center text-yellow-600 font-bold text-xs md:text-sm">
+            TIE
+          </span>
+        )}
+      </td>
+      {golfers.map((g) => (
+        <td
+          key={g}
+          className={`border p-2 cursor-pointer ${
+            winner === g ? "bg-green-200" : ""
+          }`}
+          onClick={() => onWinnerSelect(idx, g)}
+        >
+          {winner === g ? "✔" : ""}
+        </td>
+      ))}
+      <td
+        className={`border p-2 cursor-pointer ${
+          winner === "T" ? "bg-yellow-200" : ""
+        }`}
+        onClick={() => onWinnerSelect(idx, "T")}
+      >
+        {winner === "T" ? "✔" : ""}
+      </td>
+      <td className="border p-2">${skinValue}</td>
+    </tr>
   );
 }
